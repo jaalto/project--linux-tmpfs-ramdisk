@@ -34,9 +34,10 @@
 #
 #   NOTES
 #
-#       To run this file in test (dry run) mode, set variable "test":
+#       For debugging, active dry run mode by seting variable "test".
+#       Set variable "verbose" to display rsync(1) transfers.
 #
-#           test=1 /<path>/ramdisk <command>
+#           [verbose=1] [test=1] /<path>/ramdisk <command>
 
 ### BEGIN INIT INFO
 # Provides:          ramdisk
@@ -54,9 +55,17 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 # Local variables
 
+VERBOSE="--quiet"
+
+if [ "$verbose" ]; then
+    VERBOSE="--verbose"
+fi
+
 BIN=$(basename $0)
 BIN=${BIN%.sh}
 CONF=/etc/default/ramdisk
+RSYNCOPT="-a --recursive --links --owner --group $VERBOSE"
+RSYNC="nice --adjustment=${NICE:--20} rsync $RSYNCOPT"
 
 # Default configuration variables unless overriden in $CONF
 
@@ -128,8 +137,7 @@ Mount ()
             ;;
     esac
 
-    Run nice --adjustment=$NICE rsync -a --recursive --links \
-        --owner --group --delete --quiet $src/ $dest/
+    Run $RSYNC --delete $src/ $dest/
 
     Run mount -t overlay \
         -o rw,lowerdir=$src,upperdir=$dest.overlay,workdir=$dest.workdir \
@@ -170,11 +178,11 @@ Umount ()
     if [ "$type" = "flush" ]; then
         # Open up bind mount and flush chnages back
         Run umount -fl $src
-        Run nice --adjustment=$NICE rsync -alr --quiet $dest.overlay/ $src/
+        Run $RSYNC $dest.overlay/ $src/
         Run mount -o bind $dest.overlay $src
     else
         Run umount -fl $src
-        Run nice --adjustment=$NICE rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
+        Run $RSYNC --remove-source-files --delete-after $dest.overlay/ $src/
         Run umount -fl $dest.overlay
     fi
 }
