@@ -97,7 +97,7 @@ Main ()
             -i | install)
                 Install
                 ;;
-            -I | symlink)
+            -I | *symlink*)
                 # In place install for developrs and easy updates
                 Install symlink
                 ;;
