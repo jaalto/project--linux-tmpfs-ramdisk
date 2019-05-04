@@ -1,0 +1,8 @@
+# /etc/cron.d/tmp-mytmpfs-flush: crontab entry
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# every 2 hours, save
+
+* */2 * * *   root	[ -x /etc/init.d/my-tmpfs ] && /usr/sbin/invoke-rc.d my-tmpfs flush > /dev/null
