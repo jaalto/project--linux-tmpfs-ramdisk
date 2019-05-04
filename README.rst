@@ -82,7 +82,7 @@ Install Zram (optional): ::
     systemctl zramswap start
     systemctl zramswap status
 
-Set up tempfs mount point in /etc/fstab and mount it: ::
+Create tempfs mount point, add it to /etc/fstab and mount it: ::
 
     mkdir /mnt/ramdisk   # You can use any dir. Remember to edit /etc/defaults/ramdisk
 
