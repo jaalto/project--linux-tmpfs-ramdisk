@@ -43,16 +43,8 @@ RAMDISK=/mnt/ramdisk
 
 DIRLIST="\
 /var/cache/man \
-/var/cache/fontconfig \
-/var/log \
-/var/mail \
-/var/spool \
 /var/tmp \
 /tmp \
-"
-
-DIRLIST="\
-/var/cache/man \
 "
 
 test -r /etc/default/ramtmpfs && . /etc/default/ramtmpfs
