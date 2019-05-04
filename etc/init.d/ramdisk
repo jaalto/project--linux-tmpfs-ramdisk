@@ -24,8 +24,8 @@
 #       Manages selected direcories in tmpfs RAM:
 #
 #       - start - Set up ramdisk and copy data from real disk.
-#       - stop -  Teardown ramdisk and write data from RAM to disk
-#       - flush - Write data from RAM to disk. This is not ATOMIC
+#       - stop  - Teardown ramdisk and write data from RAM to disk
+#       - sync  - Write data from RAM to disk. This is not ATOMIC
 #                 operation. Some loss is inevitable if server is busy
 #                 because the "bind" mounts need to be releases during
 #                 the copy operations.
@@ -56,8 +56,10 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 VERBOSE="--quiet"
+VERBOSEON=
 
 if [ "$verbose" ]; then
+    VERBOSEON="verbose"
     VERBOSE="--verbose"
 fi
 
@@ -86,6 +88,11 @@ LOCK=$RAMDISK/ramdisk.lock
 Warn ()
 {
     echo "$*" >&2
+}
+
+Echo ()
+{
+    [ "$VERBOSEON" ] && echo "$*"
 }
 
 Run ()
@@ -137,7 +144,8 @@ Mount ()
             ;;
     esac
 
-    Run $RSYNC --delete $src/ $dest/
+    Echo "$bin: [start] rsync $src/ $dest.overlay/"
+    Run $RSYNC --delete $src/ $dest.overlay/
 
     Run mount -t overlay \
         -o rw,lowerdir=$src,upperdir=$dest.overlay,workdir=$dest.workdir \
@@ -175,24 +183,30 @@ Umount ()
         return 0  # No overlay mount
     fi
 
-    if [ "$type" = "flush" ]; then
-        # Open up bind mount and flush chnages back
+    if [ "$type" = "sync" ]; then
+        # Open up bind mount and write chnages back
         Run umount -fl $src
+
+        Echo "$bin: [sync] rsync $dest.overlay/ $src"
         Run $RSYNC $dest.overlay/ $src/
+
         Run mount -o bind $dest.overlay $src
     else
         Run umount -fl $src
+
+        Echo "$bin: [stop] rsync $dest.overlay/ $src"
         Run $RSYNC --remove-source-files --delete-after $dest.overlay/ $src/
+
         Run umount -fl $dest.overlay
     fi
 }
 
-Flush ()
+RamToDisk ()
 {
     local src=$1
     local dest=$2
 
-    Umount $src $dest flush
+    Umount $src $dest sync
 }
 
 MountMain ()
@@ -208,8 +222,8 @@ MountMain ()
         if [ "$cmd" = "mount" ]; then
             Mount "$dir" "$dest"
             Run touch "$LOCK"
-        elif [ "$cmd" = "flush" ]; then
-            Flush "$dir" "$dest"
+        elif [ "$cmd" = "sync" ]; then
+            RamToDisk "$dir" "$dest"
         else
             Umount "$dir" "$dest"
             Run rm -f "$LOCK"
@@ -284,9 +298,9 @@ Main ()
             RequireFeaturesOrDie
             MountMain mount
             ;;
-        restart | force-reload | reload | flush)
+        restart | force-reload | reload | flush | sync*)
             RequireFeaturesOrDie
-            MountMain flush
+            MountMain sync
             :
             ;;
         stop)
@@ -304,7 +318,7 @@ Main ()
             Status
             ;;
         *)
-            echo "Usage: $(basename $0) {start|stop|status|flush}"
+            echo "Usage: $(basename $0) {start|stop|status|sync}"
             exit 2
             ;;
     esac
