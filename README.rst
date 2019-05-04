@@ -146,7 +146,7 @@ COPYRIGHT AND LICENSE
 
 Copyright (C) 2018-2019 Jari Aalto <jari.aalto@cante.net>
 
-This project is free; you can redistribute and/or modify it under
+This project is free software; you can redistribute and/or modify it under
 the terms of GNU General Public license either version 2 of the
 License, or (at your option) any later version.
 See <http://www.gnu.org/licenses/>.
