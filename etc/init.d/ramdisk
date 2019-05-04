@@ -56,7 +56,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0504.2247"
+VERSION="2019.0504.2248"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -81,6 +81,22 @@ DIRLIST="\
 test -r $CONF && . $CONF
 
 LOCK=$RAMDISK/ramdisk.lock
+
+Initialize ()
+{
+    # Initialize global variables
+
+    VERBOSE="--quiet"
+    VERBOSEON=
+
+    if [ "$verbose" ]; then
+        VERBOSEON="verbose"
+        VERBOSE="--verbose"
+    fi
+
+    RSYNCOPT="-a --recursive --links --owner --group $VERBOSE"
+    RSYNC="nice --adjustment=${NICE:--20} rsync $RSYNCOPT"
+}
 
 Version ()
 {
@@ -312,22 +328,6 @@ Configuration: $CONF
 "
 
     Version
-}
-
-Initialize ()
-{
-    # Initialize global variables
-
-    VERBOSE="--quiet"
-    VERBOSEON=
-
-    if [ "$verbose" ]; then
-        VERBOSEON="verbose"
-        VERBOSE="--verbose"
-    fi
-
-    RSYNCOPT="-a --recursive --links --owner --group $VERBOSE"
-    RSYNC="nice --adjustment=${NICE:--20} rsync $RSYNCOPT"
 }
 
 Main ()
