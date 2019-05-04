@@ -5,13 +5,10 @@
 # Location of tmpfs mount point. Must be already mounted in /etc/fstab
 RAMDISK=/mnt/ramdisk
 
-# Directoris to move to RAM
+# Directories to move to RAM
 DIRLIST="\
 /var/cache/man \
 /var/cache/fontconfig \
-/var/log \
-/var/mail \
-/var/spool \
 /var/tmp \
 /tmp \
 "
