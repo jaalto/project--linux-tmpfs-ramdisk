@@ -95,7 +95,7 @@ Create tempfs mount point, add it to /etc/fstab and mount it: ::
     mount /mnt/ramdisk
 
 Configure setting. Be very careful what diretoctories you put in RAM.
-On power failure, the non-flushed data from RAM to disk is *lost*. ::
+On power failure, the non-flushed data in RAM is *lost*. ::
 
     /etc/defaults/ramdisk
 
