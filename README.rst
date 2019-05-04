@@ -122,25 +122,25 @@ REFERENCES
 ==========
 
 - [1] Tmpfs:
-  <https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt> and
-  <https://wiki.gentoo.org/wiki/Tmpfs>
+  https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt and
+  https://wiki.gentoo.org/wiki/Tmpfs
 
 - [2] Zram:
-  <https://www.kernel.org/doc/Documentation/blockdev/zram.txt> and
-  <https://wiki.debian.org/ZRam> and
-  <https://wiki.archlinux.org/index.php/Improving_performance#Zram_or_zswap> and
-  <https://wiki.gentoo.org/wiki/Zram>
+  https://www.kernel.org/doc/Documentation/blockdev/zram.txt and
+  https://wiki.debian.org/ZRam and
+  https://wiki.archlinux.org/index.php/Improving_performance#Zram_or_zswap and
+  https://wiki.gentoo.org/wiki/Zram
 
 - [3] Overlayfs:
-  <https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt> and
-  <https://en.wikipedia.org/wiki/OverlayFS>
+  https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt and
+  https://en.wikipedia.org/wiki/OverlayFS
 
 See also:
 
-- <https://github.com/graysky2/anything-sync-daemon>
-- <https://wiki.archlinux.org/index.php/anything-sync-daemon>
-- <https://salsa.debian.org/janluca-guest/anything-sync-daemon-debian>
-- <https://debian-administration.org/article/661/A_transient_/var/log>
+- https://github.com/graysky2/anything-sync-daemon
+- https://wiki.archlinux.org/index.php/anything-sync-daemon
+- https://salsa.debian.org/janluca-guest/anything-sync-daemon-debian
+- https://debian-administration.org/article/661/A_transient_/var/log
 
 COPYRIGHT AND LICENSE
 =====================
