@@ -83,19 +83,6 @@ IsMounted ()
     mount | egrep -q " $RAMDISK +type +\<tmpfs "
 }
 
-RequireFeaturesOrDie ()
-{
-    if ! IsMounted ; then
-        Warn "$BIN: ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
-        exit 1
-    fi
-
-    if ! IsOverlayfs ; then
-        Warn "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
-        exit 1
-    fi
-}
-
 Mount ()
 {
     local src=$1
@@ -202,6 +189,25 @@ MountMain ()
     done
 
     touch "$RAMDISK/$RUN"
+}
+
+RequireFeaturesOrDie ()
+{
+    if ! IsMounted ; then
+        Warn "$BIN: ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
+        exit 1
+    fi
+
+    if ! IsOverlayfs ; then
+        Warn "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
+        exit 1
+    fi
+
+    [ -x /usr/bin/rsync ] && return 0
+
+    if ! which rsync > /dev/null 2>&1 ; then
+        Die "$BIN: ERROR rsync(1) progam not in PATH. Aborted."
+    fi
 }
 
 Main ()
