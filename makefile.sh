@@ -33,6 +33,14 @@ Edit RAM flush period in /etc/cron.d/ramdisk-flush"
 
 InstallDo ()
 {
+    # Once defaults file is installed, do nothing.
+
+    case "$2" in
+        *defaults*)
+            [ -f "/$2" ] && return 0
+            ;;
+    esac
+
     if [ "$1" ]; then
         ${test:+echo} ln --verbose --symbolic --relative --force "$2" "$3"
     else
@@ -46,6 +54,7 @@ Install ()
 
     InstallDo "$1"  etc/init.d/ramdisk /etc/init.d/
     InstallDo "$1"  etc/cron.d/ramdisk /etc/cron.d/
+    InstallDo "$1"  etc/default/ramdisk /etc/default/
 
     [ "$firsttime" ] && echo "$firsttime"
 }
@@ -71,7 +80,7 @@ Main ()
                 echo "$usage"
                 return 0
                 ;;
-            *)
+            -i | *install*)
                 Install
                 ;;
         esac
