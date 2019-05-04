@@ -10,7 +10,7 @@ MAY LOOSE ALL YOUR DATA.
 
 A Linux administrator utility to manage selected directories in tmpfs RAM.
 
-Keep list of directories like /tmp and /var/cache in RAM in withing a
+Keep list of directories like ``/tmp`` and ``/var/cache`` in RAM in a
 single mount point. The idea is speed and less HDD/SDD wear of
 frequently accessed or written files. In low RAM systems (NAS,
 routers, other embedded Linux), it's possible to use RAM better by
@@ -63,18 +63,18 @@ USAGE
 =====
 
 After install, the utility is used as any other service. The "flush"
-command copies data from RAM to disk.
+command copies data from RAM to disk. ::
 
     /etc/init.d/ramdisk <start|stop|flush>
 
 INSTALL
 =======
 
-Login as root and run install:
+Login as root and run install: ::
 
     ./makefile.sh install
 
-Install Zram (optional):
+Install Zram (optional): ::
 
     apt-get install zram-tools
     apt-get install util-linux # contains zramctl
@@ -84,7 +84,7 @@ Install Zram (optional):
     systemctl zramswap start
     systemctl zramswap status
 
-Set up tempfs mount point in /etc/fstab and mount it:
+Set up tempfs mount point in /etc/fstab and mount it: ::
 
     mkdir /mnt/ramdisk   # You can use any dir. Remember to edit /etc/defaults/ramdisk
 
@@ -97,12 +97,12 @@ Set up tempfs mount point in /etc/fstab and mount it:
     mount /mnt/ramdisk
 
 Configure setting. Be very careful what diretoctories you put in RAM.
-On power failure, the non-flushed data from RAM to disk is *lost*.
+On power failure, the non-flushed data from RAM to disk is *lost*. ::
 
     /etc/defaults/ramdisk
 
 Configure how often the RAM is flushed to disk. Default setup is every
-2 hours:
+2 hours. ::
 
     /etc/cron.d/ramdisk
 
