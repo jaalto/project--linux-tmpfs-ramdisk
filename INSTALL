@@ -1,0 +1,14 @@
+Requires
+
+   Linux
+   Standard POSIX /bin/sh
+   Standard GNU command line programs
+
+To install the program for system wide use:
+
+   sh makefile.sh help
+   sh makefile.sh install
+
+To run run "in place" for easy "git pull" updates:
+
+   sh makefile.sh install-symlink
