@@ -5,7 +5,7 @@
 DESCRIPTION
 ===========
 
-Warning: As of 2019-05-04 this is *EXPERIMENTAL*. NOT TESTED and YOU
+Warning: as of 2019-05-04 this is **EXPERIMENTAL**. NOT TESTED and YOU
 MAY LOOSE ALL YOUR DATA.
 
 A Linux administrator utility to manage selected directories in tmpfs RAM.
@@ -18,7 +18,7 @@ using tempfs filesystem like Zram[1].
 
 For virtualized environments, the network traffic can be also reduced
 by not writing directly to remte disk but keeping the data in host A's
-memory.
+memory. ::
 
      HOST		      NAS
      +-----------------+      +--------------------------------+
@@ -102,13 +102,13 @@ REFERENCES
 ==========
 
 - [1] Tmpfs:
-  <https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt>
+  <https://www.kernel.org/doc/Documentation/filesystems/tmpfs.txt> and
   <https://wiki.gentoo.org/wiki/Tmpfs>
 
 - [2] Zram:
-  <https://www.kernel.org/doc/Documentation/blockdev/zram.txt>
-  <https://wiki.debian.org/ZRam>
-  <https://wiki.archlinux.org/index.php/Improving_performance#Zram_or_zswap>
+  <https://www.kernel.org/doc/Documentation/blockdev/zram.txt> and
+  <https://wiki.debian.org/ZRam> and
+  <https://wiki.archlinux.org/index.php/Improving_performance#Zram_or_zswap> and
   <https://wiki.gentoo.org/wiki/Zram>
 
 COPYRIGHT AND LICENSE
