@@ -33,8 +33,12 @@ The ``/etc/init.d/ramdisk`` controls management of mount points,
 layers them using overlayfs[3] and pretends that the new mounts in RAM
 are the actual file system mounts using "bind mounts". The command
 "start" is responsible for creating all the mounts and moving data to
-RAM. Command "stop" unwinds the mounts, transfers changes back to
-the disk and dissolves any remaining mounts back to pristine state.
+RAM. Command "stop" unwinds the mounts, transfers changes back to the
+disk and dissolves any remaining mounts back to pristine state. While
+the data is in RAM, command "sync" can be used to write snapshot data
+back to their respective direcories while continuing serving RAM after
+the save is complete. (a cron task is included to do this
+automatically).
 
 There are two mount layers: ::
 
