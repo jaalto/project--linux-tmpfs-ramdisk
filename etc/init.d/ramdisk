@@ -52,7 +52,14 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 . /lib/lsb/init-functions
 
-# Default configuration variables unless overriden in /etc/default/ramtmpfs
+# Local variables
+
+BIN=$(basename $0)
+BIN=${BIN%.sh}
+RUN=ramdisk.lock
+CONF=/etc/default/ramdisk
+
+# Default configuration variables unless overriden in $CONF
 
 NICE=-20  # make rsync(1) as fast as posisble
 
@@ -61,16 +68,10 @@ RAMDISK=/mnt/ramdisk
 DIRLIST="\
 /var/cache/man \
 /var/tmp \
-/tmp \
+/tmp\
 "
 
-test -r /etc/default/ramtmpfs && . /etc/default/ramtmpfs
-
-# Local variables
-
-BIN=$(basename $0)
-BIN=${BIN%.sh}
-RUN=ramdisk.lock
+test -r $CONF && . $CONF
 
 Warn ()
 {
@@ -84,7 +85,7 @@ Run ()
 
 IsOverlayfs ()
 {
-    grep overlay /proc/filesystems
+    grep -q overlay /proc/filesystems
 }
 
 IsMounted ()
@@ -199,6 +200,26 @@ MountMain ()
     touch "$RAMDISK/$RUN"
 }
 
+Status ()
+{
+    if IsMounted ; then
+        echo "$BIN: active tmpfs $RAMDISK"
+    else
+        echo "$BIN: deactive tmpfs $RAMDISK"
+        return 0
+    fi
+
+    if [ -f "$RAMDISK/$RUN" ]; then
+        echo "$BIN: serving $RAMDISK"
+    else
+        echo "$BIN: stopped"
+    fi
+
+    local dir
+
+    echo "$BIN: directories $DIRLIST"
+}
+
 RequireFeaturesOrDie ()
 {
     if ! IsMounted ; then
@@ -249,12 +270,7 @@ Main ()
             ;;
         status)
             RequireFeaturesOrDie
-
-            if [ -f "$RAMDISK/$RUN" ]; then
-                echo "$BIN: active"
-            else
-                echo "$BIN: deactive"
-            fi
+            Status
             ;;
         *)
             echo "Usage: $(basename $0) {start|stop|status|flush}"
