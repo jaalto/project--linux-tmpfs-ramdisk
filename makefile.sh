@@ -20,7 +20,7 @@
 #       along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 usage="\
-Synopsis: $0 [command]
+Synopsis: [DESTDIR=<install root>] $0 [command]
 
 Commands:
 install    Install by copying (default if no commands given)
@@ -62,10 +62,17 @@ InstallDo ()
             ;;
     esac
 
+    unset dest
+
+    case "$DESTDIR" in
+        */)  dest=$DESTDIR    ;;
+        */*) dest="$DESTDIR/" ;;
+    esac
+
     if [ "$type" ]; then
-        ${test:+echo} ln --verbose --symbolic --relative --force "$2" "$3"
+        ${test:+echo} ln --verbose --symbolic --relative --force "$2" "$dest$3"
     else
-        ${test:+echo} install --verbose --mode 755 "$2" "$3"
+        ${test:+echo} install ${dest:+-D} --verbose --mode 755 "$2" "$dest$3"
     fi
 }
 
