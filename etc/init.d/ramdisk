@@ -1,0 +1,249 @@
+#!/bin/sh
+#
+#   Copyright
+#
+#       Copyright (C) 2018-2019 Jari Aalto
+#
+#   License
+#
+#       This program is free software; you can redistribute it and/or modify
+#       it under the terms of the GNU General Public License as published by
+#       the Free Software Foundation; either version 2 of the License, or
+#       (at your option) any later version.
+#
+#       This program is distributed in the hope that it will be useful,
+#       but WITHOUT ANY WARRANTY; without even the implied warranty of
+#       MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#       GNU General Public License for more details.
+#
+#       You should have received a copy of the GNU General Public License
+#       along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#  DESCRIPTION
+#
+#       See also https://wiki.debian.org/ZRam
+
+### BEGIN INIT INFO
+# Provides:          ramdisk
+# Required-Start:    $local_fs
+# Required-Stop:     $local_fs
+# Default-Start:     S
+# Default-Stop:      0 1 6
+# Short-Description: Manage directories moved to tmpfs
+# Description:       Manage directories moved to tmpfs
+### END INIT INFO
+
+PATH=/bin:/usr/bin:/sbin:/usr/sbin
+
+. /lib/lsb/init-functions
+
+# Configuration variables
+
+RAMDISK=/mnt/ramdisk
+
+DIRLIST="\
+/var/cache/man \
+/var/cache/fontconfig \
+/var/log \
+/var/mail \
+/var/spool \
+/var/tmp \
+/tmp \
+"
+
+DIRLIST="\
+/var/cache/man \
+"
+
+test -r /etc/default/ramtmpfs && . /etc/default/ramtmpfs
+
+# Local variables
+
+BIN=$(basename $0)
+BIN=${BIN%.sh}
+RUN=ramdisk.lock
+
+Warn ()
+{
+    echo "$*" >&2
+}
+
+Run ()
+{
+    ${test:+echo} "$@"
+}
+
+IsMountRamdisk ()
+{
+    mount | egrep -q " $RAMDISK +type +\<tmpfs "
+}
+
+IsMountRamdiskOrDie ()
+{
+    if ! IsMounted ; then
+        Warn "$BIN: ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
+        exit 1
+    fi
+}
+
+Mount ()
+{
+    local src=$1
+    local dest=$2
+
+    if [ ! "$2" ]; then
+        Warn "$BIN: (Mount) arguments missing"
+        return 1
+    fi
+
+    if [ ! -d "$src" ]; then
+        Warn "$BIN: ERROR no src $src"
+        return 0
+    fi
+
+    if mount | grep --quiet $dest.overlay ; then
+        return 0  # Already
+    fi
+
+    Run mkdir -p $dest $dest.workdir $dest.overlay
+
+    # Special permissions
+
+    case "$src" in
+        /tmp)
+            chmod a=rwx,o+t $dest
+            ;;
+    esac
+
+    Run rsync -a --recursive --links --owner --group --delete --quiet $src/ $dest/
+
+    Run mount -t overlay -o rw,lowerdir=$src,upperdir=$dest.overlay,workdir=$dest.workdir none $dest.overlay
+    Run mount -o bind $dest.overlay $src
+}
+
+Umount ()
+{
+    local src=$1
+    local dest=$2
+    local type=$3
+
+    if [ ! "$2" ]; then
+        Warn "$BIN: (Umount) arguments missing"
+        return 1
+    fi
+
+    if [ ! -d "$dest.overlay" ]; then
+        return 0
+    fi
+
+    if [ ! -d "$src" ]; then
+        Warn "$BIN: ERROR no src $src"
+        return 0
+    fi
+
+    if [ ! -d "$dest" ]; then
+        Warn "$BIN: ERROR no dest $dest"
+        return 0
+    fi
+
+    if ! mount | grep --quiet $dest.overlay ; then
+        return 0  # No overlay mount
+    fi
+
+    if [ "$type" = "flush" ]; then
+        # Open up bind mount and flush chnages back
+        Run umount -fl $src
+        Run rsync -alr --delete-after --quiet $dest.overlay/ $src/
+        Run mount -o bind $dest.overlay $src
+    else
+test=1
+        Run umount -fl $src
+        Run rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
+        Run umount -fl $dest.overlay
+        Run rmdir $dest $dest.*/work $dest.*
+    fi
+}
+
+Flush ()
+{
+    local src=$1
+    local dest=$2
+
+    Umount $src $dest flush
+}
+
+MountMain ()
+{
+    local cmd=$1
+    local dir
+    local dest
+
+    for dir in $DIRLIST
+    do
+        dest=$RAMDISK/${dir#/}
+
+        if [ "$cmd" = "mount" ]; then
+            Mount "$dir" "$dest"
+        elif [ "$cmd" = "flush" ]; then
+            Flush "$dir" "$dest"
+        else
+            Umount "$dir" "$dest"
+        fi
+    done
+
+    touch "$RAMDISK/$RUN"
+}
+
+Main ()
+{
+    case "$1" in
+        start)
+            log_daemon_msg "Starting $BIN" "$BIN"
+
+            if [ ! -d $RAMDISK ] ; then
+                Warn "$BIN: ERROR no mount directory $RAMDISK for tmpfs. Aborted."
+                return 1
+            fi
+
+            IsMountRamdiskOrDie
+            MountMain mount
+            ;;
+        restart | force-reload | reload | flush)
+            IsMountRamdiskOrDie
+            MountMain flush
+            :
+            ;;
+        stop)
+            log_daemon_msg "Stopping $BIN" "$BIN"
+
+            if [ ! -d $RAMDISK ] ; then
+                return 1
+            fi
+
+            IsMountRamdiskOrDie
+            MountMain umount
+            ;;
+        status)
+            IsMountRamdiskOrDie
+
+            if [ -f "$RAMDISK/$RUN" ]; then
+                echo "$BIN: active"
+            else
+                echo "$BIN: deactive"
+            fi
+            ;;
+        *)
+            echo "Usage: $(basename $0) {start|stop|status|flush}"
+            exit 2
+            ;;
+    esac
+}
+
+#test=1
+#MountMain mount
+#echo
+#MountMain umount
+
+Main "$@"
+
+# End of file
