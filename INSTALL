@@ -1,7 +1,7 @@
 Requires
 
    Linux
-   Linux overlyafs in Kernel (3.18+; 2014)
+   Linux overlayfs in Kernel (3.18+; 2014)
    Standard POSIX /bin/sh
    Standard GNU command line programs
    rsync
