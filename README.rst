@@ -20,7 +20,7 @@ For virtualized environments, the network traffic can be also reduced
 by not writing directly to remote disk but keeping the data in host A's
 memory. ::
 
-     HOST		      NAS
+     HOST                     NAS
      +-----------------+      +--------------------------------+
      | [Host A]        |      | [Host]                         |
      | Virtual Machine + ---- + Disks located on network drive |
@@ -29,7 +29,23 @@ memory. ::
 How does it work?
 -----------------
 
-The ``/etc/init.d/ramdisk`` controls management of mount points and layers them using
+The ``/etc/init.d/ramdisk`` controls management of mount points and
+layers them using overlayfs[3] and pretends tha thet the new mounts
+point to the actual file system using "bind mounts". The commands
+"starts" is reposible for creating all the mounts and moving data to
+RAM. Command "stop" does the opposite: it unwinds the mounts and
+transfers changes back to the disk and dissolves any mounts (the file
+systems is as it used to be). There are two layers ::
+
+    +-------------------------------------------+
+    |    bind mounts from /mnt/ramdisk/<DIR>    |
+    |    back to original FS: e.g. /tmp         |
+    +-------------------------------------------+
+    |    overlayfs: /tamp /var/spool...         |
+    |    al mounts under: /mnt/ramdisk          |
+    +-------------------------------------------+
+    |    Original FS (standard directories)     |
+    +-------------------------------------------+
 
 REQUIREMENTS
 ============
@@ -39,8 +55,8 @@ REQUIREMENTS
 
 2. Build: /bin/sh
 
-3. Run: POSIX ``/bin/sh`` and GNU command
-   line programs
+3. POSIX ``/bin/sh``, GNU command
+   line programs and ``rsync``.
 
 USAGE
 =====
