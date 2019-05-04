@@ -62,6 +62,14 @@ REQUIREMENTS
 USAGE
 =====
 
+After install, the utility is used as any other service. The "flush"
+command copies data from RAM to disk.
+
+    /etc/init.d/ramdisk <start|stop|flush>
+
+INSTALL
+=======
+
 Login as root and run install:
 
     ./makefile.sh
