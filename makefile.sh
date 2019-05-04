@@ -38,6 +38,12 @@ Warn ()
     echo "$*" >&2
 }
 
+Die ()
+{
+    Warn "$*"
+    exit 1
+}
+
 IsOverlayfs ()
 {
     grep overlay /proc/filesystems
@@ -92,8 +98,11 @@ Status ()
 RequireFEaturesOrDie ()
 {
     if ! IsOverlayfs ; then
-        Warn "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
-        exit 1
+        Die "ERROR overlayfs not supported in current Kernel. Aborted."
+    fi
+
+    if ! which rsync > /dev/null 2>&1 ; then
+        Die "ERROR rsync(1) progam not in PATH. Aborted."
     fi
 }
 
