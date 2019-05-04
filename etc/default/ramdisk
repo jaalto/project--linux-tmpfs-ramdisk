@@ -21,4 +21,8 @@ DIRLIST="\
 /tmp \
 "
 
+DIRLIST="\
+/var/cache/man \
+"
+
 # End of file
