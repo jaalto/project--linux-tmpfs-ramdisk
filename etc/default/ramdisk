@@ -18,11 +18,11 @@ DIRLIST="\
 /var/cache/man \
 /var/cache/fontconfig \
 /var/tmp \
-/tmp \
+/tmp\
 "
 
 DIRLIST="\
-/var/cache/man \
+/var/cache/man\
 "
 
 # End of file
