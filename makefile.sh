@@ -33,6 +33,16 @@ help="
 Configure directories kept in RAM in /etc/defaults/ramdisk
 Edit RAM flush period in /etc/cron.d/ramdisk-flush"
 
+Warn ()
+{
+    echo "$*" >&2
+}
+
+IsOverlayfs ()
+{
+    grep overlay /proc/filesystems
+}
+
 InstallDo ()
 {
     type="$1"
@@ -79,6 +89,14 @@ Status ()
     ls -l /ect/cron.d/ramdisk /ect/default/ramdisk /ect/init.d/ramdisk
 }
 
+RequireFEaturesOrDie ()
+{
+    if ! IsOverlayfs ; then
+        Warn "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
+        exit 1
+    fi
+}
+
 Main ()
 {
     for arg in "$@"
@@ -95,9 +113,11 @@ Main ()
                 return 0
                 ;;
             -i | install)
+                RequireFEaturesOrDie
                 Install
                 ;;
             -I | *symlink*)
+                RequireFEaturesOrDie
                 # In place install for developrs and easy updates
                 Install symlink
                 ;;
