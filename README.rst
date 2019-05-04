@@ -117,7 +117,7 @@ REFERENCES
   <https://wiki.archlinux.org/index.php/Improving_performance#Zram_or_zswap> and
   <https://wiki.gentoo.org/wiki/Zram>
 
-- [3]
+- [3] Overlayfs:
   <https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt> and
   <https://en.wikipedia.org/wiki/OverlayFS>
 
