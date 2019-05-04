@@ -72,7 +72,7 @@ INSTALL
 
 Login as root and run install:
 
-    ./makefile.sh
+    ./makefile.sh install
 
 Install Zram (optional):
 
