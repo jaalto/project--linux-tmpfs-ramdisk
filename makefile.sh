@@ -23,9 +23,11 @@ usage="\
 Synopsis: $0 [command]
 
 Commands:
-clean    Remove installed file
-install  Install by copying (default if no commands given).
-symlink  Install symlinks from currect directory."
+install    Install by copying (default if no commands given)
+symlink    Install symlinks from currect directory
+clean      Remove installed run files. Lave configuration /etc/default
+realclean  Remove everything
+status     Show install status."
 
 help="
 Configure directories kept in RAM in /etc/defaults/ramdisk
@@ -33,15 +35,18 @@ Edit RAM flush period in /etc/cron.d/ramdisk-flush"
 
 InstallDo ()
 {
+    type="$1"
+
     # Once defaults file is installed, do nothing.
 
     case "$2" in
-        *defaults*)
+        *default*)
             [ -f "/$2" ] && return 0
+            type=""
             ;;
     esac
 
-    if [ "$1" ]; then
+    if [ "$type" ]; then
         ${test:+echo} ln --verbose --symbolic --relative --force "$2" "$3"
     else
         ${test:+echo} install --verbose --mode 755 "$2" "$3"
@@ -61,7 +66,17 @@ Install ()
 
 Clean ()
 {
-    ${test:+echo} rm --verbose --force etc/init.d/ramdisk /etc/cron.d/etc/cron.d/ramdisk-flush
+    ${test:+echo} rm --verbose --force /etc/init.d/ramdisk /etc/cron.d/ramdisk "$@"
+}
+
+RealClean ()
+{
+    Clean /etc/default/ramdisk
+}
+
+Status ()
+{
+    ls -l /ect/cron.d/ramdisk /ect/default/ramdisk /ect/init.d/ramdisk
 }
 
 Main ()
@@ -69,19 +84,25 @@ Main ()
     for arg in "$@"
     do
         case "$arg" in
-            -c | *clean*)
+            -c | clean)
                 Clean
                 ;;
-            -s | *symlink*)
-                # In place install for developrs and easy updates
-                Install symlink
+            -C | realclean)
+                RealClean
                 ;;
             -h | *help*)
                 echo "$usage"
                 return 0
                 ;;
-            -i | *install*)
+            -i | install)
                 Install
+                ;;
+            -I | symlink)
+                # In place install for developrs and easy updates
+                Install symlink
+                ;;
+            -s | status)
+                Status
                 ;;
         esac
     done
