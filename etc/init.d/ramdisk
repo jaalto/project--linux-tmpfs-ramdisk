@@ -88,6 +88,11 @@ IsOverlayfs ()
     grep -q overlay /proc/filesystems
 }
 
+IsMountOverlay ()
+{
+    mount | egrep " $1 +type +\<overlay "
+}
+
 IsMountRamdiskRoot ()
 {
     mount | egrep -q " $RAMDISK +type +\<tmpfs "
@@ -122,9 +127,13 @@ Mount ()
             ;;
     esac
 
-    Run nice -n $NICE rsync -a --recursive --links --owner --group --delete --quiet $src/ $dest/
+    Run nice --adjustment=$NICE rsync -a --recursive --links \
+        --owner --group --delete --quiet $src/ $dest/
 
-    Run mount -t overlay -o rw,lowerdir=$src,upperdir=$dest.overlay,workdir=$dest.workdir none $dest.overlay
+    Run mount -t overlay \
+        -o rw,lowerdir=$src,upperdir=$dest.overlay,workdir=$dest.workdir \
+        none $dest.overlay
+
     Run mount -o bind $dest.overlay $src
 }
 
@@ -160,11 +169,11 @@ Umount ()
     if [ "$type" = "flush" ]; then
         # Open up bind mount and flush chnages back
         Run umount -fl $src
-        Run nice -n $NICE rsync -alr --delete-after --quiet $dest.overlay/ $src/
+        Run nice --adjustment=$NICE rsync -alr --delete-after --quiet $dest.overlay/ $src/
         Run mount -o bind $dest.overlay $src
     else
         Run umount -fl $src
-        Run nice -n $NICE rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
+        Run nice --adjustment=$NICE rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
         Run umount -fl $dest.overlay
         Run rmdir $dest $dest.*/work $dest.*
     fi
@@ -200,13 +209,23 @@ MountMain ()
     touch "$LOCK"
 }
 
+StatusOverlays ()
+{
+    local dir
+
+    for dir in $DIRLIST
+    do
+        IsMountOverlay $dir
+    done
+}
+
 Status ()
 {
     if IsMountRamdiskRoot ; then
         echo "$BIN: active tmpfs $RAMDISK"
     else
         echo "$BIN: deactive tmpfs $RAMDISK"
-        return 0
+        return 1
     fi
 
     if [ -f "$LOCK" ]; then
@@ -218,6 +237,10 @@ Status ()
     local dir
 
     echo "$BIN: directories $DIRLIST"
+
+    StatusOverlays | sed "s,^,$BIN: [mount],"
+
+    return 0
 }
 
 RequireFeaturesOrDie ()
