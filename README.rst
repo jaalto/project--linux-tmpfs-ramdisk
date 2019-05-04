@@ -72,9 +72,9 @@ user mode on running system first:
     telinit 1
 
 After preparations, the utility is used as any other service. The
-"flush" command copies data back from RAM to disk. ::
+"sync" command copies data back from RAM to disk. ::
 
-    /etc/init.d/ramdisk <start|stop|flush>
+    /etc/init.d/ramdisk <start|stop|sync>
 
 INSTALL
 =======
@@ -110,7 +110,7 @@ On power failure, the non-flushed data in RAM is *lost*. ::
 
     /etc/defaults/ramdisk
 
-Configure how often the RAM is flushed back to disk. Default setup is every
+Configure how often the RAM is written back to disk. Default setup is every
 2 hours. ::
 
     /etc/cron.d/ramdisk
