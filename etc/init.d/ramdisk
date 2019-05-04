@@ -34,10 +34,10 @@
 #
 #   NOTES
 #
-#       For debugging, active dry run mode by seting variable "test".
-#       Set variable "verbose" to display rsync(1) transfers.
+#       For debugging, enable dry run test mode. To display rsync(1)
+#       transfer messages, enable verbose:
 #
-#           [verbose=1] [test=1] /<path>/ramdisk <command>
+#           /<path>/ramdisk --verbose [--test] <command>
 
 ### BEGIN INIT INFO
 # Provides:          ramdisk
@@ -55,19 +55,16 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 # Local variables
 
-VERBOSE="--quiet"
-VERBOSEON=
+AUTHOR="Jari Aalto <jari.aalto@cante.net>"
+VERSION="2019.0504.2241"
+LICENSE="GPL-2+"
+HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
-if [ "$verbose" ]; then
-    VERBOSEON="verbose"
-    VERBOSE="--verbose"
-fi
+USAGE="Usage: $(basename $0) [options] {start|stop|status|sync}"
 
 BIN=$(basename $0)
 BIN=${BIN%.sh}
 CONF=/etc/default/ramdisk
-RSYNCOPT="-a --recursive --links --owner --group $VERBOSE"
-RSYNC="nice --adjustment=${NICE:--20} rsync $RSYNCOPT"
 
 # Default configuration variables unless overriden in $CONF
 
@@ -284,8 +281,90 @@ RequireFeaturesOrDie ()
     fi
 }
 
+Help ()
+{
+    echo "$USAGE
+
+OPTIONS
+
+-h, --help      Display help and exit.
+-t, --test      Run in dry run, test mode. Only displays commands.
+-v, --verbose   Turn on verbose messages
+-V, --version   Display version, licence etc. and exit
+
+DESCRIPTION
+
+Manage select diectories in RAM. Provide command 'start' to
+copy-to-RAM, command 'stop' to restore the system mounts as they were
+while wriing modified files back to disk and 'sync' to snapshot
+RAM-copy-to-DISK to preserve data.
+
+Configuration: $CONF
+"
+
+    Version
+}
+
+Version ()
+{
+    echo "$VERSION $LICENSE $AUTHOR $HOMEPAGE"
+}
+
+Initialize ()
+{
+    # Initialize global variables
+
+    VERBOSE="--quiet"
+    VERBOSEON=
+
+    if [ "$verbose" ]; then
+        VERBOSEON="verbose"
+        VERBOSE="--verbose"
+    fi
+
+    RSYNCOPT="-a --recursive --links --owner --group $VERBOSE"
+    RSYNC="nice --adjustment=${NICE:--20} rsync $RSYNCOPT"
+}
+
 Main ()
 {
+    unset verbose
+    unset test
+
+    while :
+    do
+        case "$1" in
+            -h | --help)
+                Help
+                return 0
+                ;;
+            -t | --test)
+                shift
+                test=test
+                ;;
+            -v | --verbose)
+                shift
+                verbose=verbose
+                ;;
+            -V | --version)
+                Version
+                return 0
+                ;;
+            -*) Warn"$BIN: WARN Unknown option: $1"
+                shift
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    Initialize
+
     case "$1" in
         start)
             log_daemon_msg "Starting $BIN" "$BIN"
@@ -318,16 +397,12 @@ Main ()
             Status
             ;;
         *)
-            echo "Usage: $(basename $0) {start|stop|status|sync}"
+            echo "$USAGE"
+            echo "See also --help"
             exit 2
             ;;
     esac
 }
-
-#test=1
-#MountMain mount
-#echo
-#MountMain umount
 
 Main "$@"
 
