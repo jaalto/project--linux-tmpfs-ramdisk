@@ -30,8 +30,8 @@ realclean  Remove everything
 status     Show install status."
 
 help="
-Configure directories kept in RAM in /etc/defaults/ramdisk
-Edit RAM flush period in /etc/cron.d/ramdisk-flush"
+NOTE: Configure directories kept in RAM in /etc/defaults/ramdisk
+NOTE: Edit RAM flush period in /etc/cron.d/ramdisk-flush"
 
 Warn ()
 {
