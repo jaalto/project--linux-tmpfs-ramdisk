@@ -21,7 +21,22 @@
 #
 #  DESCRIPTION
 #
+#       Manages selected direcories in tmpfs RAM:
+#
+#       - start - Set up ramdisk and copy data from real disk.
+#       - stop -  Teardown ramdisk and write data from RAM to disk
+#       - flush - Write data from RAM to disk. This is not ATOMIC
+#                 operation. Some loss is inevitable if server is busy
+#                 because the "bind" mounts need to be releases during
+#                 the copy operations.
+#
 #       See also https://wiki.debian.org/ZRam
+#
+#   NOTES
+#
+#       To run this file in test (dry run) mode, set variable "test":
+#
+#           test=1 /<path>/ramdisk <command>
 
 ### BEGIN INIT INFO
 # Provides:          ramdisk
@@ -38,6 +53,8 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 . /lib/lsb/init-functions
 
 # Default configuration variables unless overriden in /etc/default/ramtmpfs
+
+NICE=-20  # make rsync(1) as fast as posisble
 
 RAMDISK=/mnt/ramdisk
 
@@ -104,7 +121,7 @@ Mount ()
             ;;
     esac
 
-    Run rsync -a --recursive --links --owner --group --delete --quiet $src/ $dest/
+    Run nice -n $NICE rsync -a --recursive --links --owner --group --delete --quiet $src/ $dest/
 
     Run mount -t overlay -o rw,lowerdir=$src,upperdir=$dest.overlay,workdir=$dest.workdir none $dest.overlay
     Run mount -o bind $dest.overlay $src
@@ -142,11 +159,11 @@ Umount ()
     if [ "$type" = "flush" ]; then
         # Open up bind mount and flush chnages back
         Run umount -fl $src
-        Run rsync -alr --delete-after --quiet $dest.overlay/ $src/
+        Run nice -n $NICE rsync -alr --delete-after --quiet $dest.overlay/ $src/
         Run mount -o bind $dest.overlay $src
     else
         Run umount -fl $src
-        Run rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
+        Run nice -n $NICE rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
         Run umount -fl $dest.overlay
         Run rmdir $dest $dest.*/work $dest.*
     fi
