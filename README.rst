@@ -54,9 +54,7 @@ REQUIREMENTS
 1. Environment: Linux only. Reruires overlayfs[3] in kernel (3.18+; 2014)
    Check ``/proc/filesystems``.
 
-2. Build: /bin/sh
-
-3. POSIX ``/bin/sh``, GNU command
+2. POSIX ``/bin/sh``, GNU command
    line programs and ``rsync``.
 
 USAGE
