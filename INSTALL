@@ -4,6 +4,7 @@ Requires
    Linux overlyafs in Kernel (3.18+; 2014)
    Standard POSIX /bin/sh
    Standard GNU command line programs
+   rsync
 
 To install the program for system wide use:
 
