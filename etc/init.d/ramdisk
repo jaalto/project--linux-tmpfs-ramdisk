@@ -153,7 +153,6 @@ Umount ()
         Run rsync -alr --delete-after --quiet $dest.overlay/ $src/
         Run mount -o bind $dest.overlay $src
     else
-test=1
         Run umount -fl $src
         Run rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
         Run umount -fl $dest.overlay
