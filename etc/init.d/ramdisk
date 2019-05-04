@@ -56,7 +56,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0504.2243"
+VERSION="2019.0504.2246"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -85,6 +85,12 @@ LOCK=$RAMDISK/ramdisk.lock
 Warn ()
 {
     echo "$*" >&2
+}
+
+Die ()
+{
+    Warn "$*"
+    exit 1
 }
 
 Echo ()
@@ -265,13 +271,11 @@ Status ()
 RequireFeaturesOrDie ()
 {
     if ! IsMountRamdiskRoot ; then
-        Warn "$BIN: ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
-        exit 1
+        Die "$BIN: ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
     fi
 
     if ! IsOverlayfs ; then
-        Warn "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
-        exit 1
+        Die "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
     fi
 
     [ -x /usr/bin/rsync ] && return 0
