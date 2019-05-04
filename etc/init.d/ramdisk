@@ -207,14 +207,14 @@ MountMain ()
 
         if [ "$cmd" = "mount" ]; then
             Mount "$dir" "$dest"
+            Run touch "$LOCK"
         elif [ "$cmd" = "flush" ]; then
             Flush "$dir" "$dest"
         else
             Umount "$dir" "$dest"
+            Run rm -f "$LOCK"
         fi
     done
-
-    touch "$LOCK"
 }
 
 StatusOverlays ()
