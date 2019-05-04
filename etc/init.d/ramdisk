@@ -56,7 +56,6 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 BIN=$(basename $0)
 BIN=${BIN%.sh}
-LOCK=$RAMDISK/ramdisk.lock
 CONF=/etc/default/ramdisk
 
 # Default configuration variables unless overriden in $CONF
@@ -72,6 +71,8 @@ DIRLIST="\
 "
 
 test -r $CONF && . $CONF
+
+LOCK=$RAMDISK/ramdisk.lock
 
 Warn ()
 {
@@ -169,13 +170,12 @@ Umount ()
     if [ "$type" = "flush" ]; then
         # Open up bind mount and flush chnages back
         Run umount -fl $src
-        Run nice --adjustment=$NICE rsync -alr --delete-after --quiet $dest.overlay/ $src/
+        Run nice --adjustment=$NICE rsync -alr --quiet $dest.overlay/ $src/
         Run mount -o bind $dest.overlay $src
     else
         Run umount -fl $src
         Run nice --adjustment=$NICE rsync -alr --remove-source-files --delete-after -v $dest.overlay/ $src/
         Run umount -fl $dest.overlay
-        Run rmdir $dest $dest.*/work $dest.*
     fi
 }
 
@@ -231,14 +231,14 @@ Status ()
     if [ -f "$LOCK" ]; then
         echo "$BIN: active process status $LOCK"
     else
-        echo "$BIN: deactive process status"
+        echo "$BIN: deactive process status. No $LOCK"
     fi
 
     local dir
 
     echo "$BIN: directories $DIRLIST"
 
-    StatusOverlays | sed "s,^,$BIN: [mount],"
+    StatusOverlays | sed "s,^,$BIN: [mount] ,"
 
     return 0
 }
