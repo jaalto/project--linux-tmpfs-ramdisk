@@ -36,7 +36,7 @@ are the actual file system mounts using "bind mounts". The command
 RAM. Command "stop" unwinds the mounts, transfers changes back to
 the disk and dissolves any remaining mounts back to pristine state.
 
-There are two layers ::
+There are two mount layers: ::
 
     +-------------------------------------------+
     |    bind mounts from /mnt/ramdisk/<DIR>    |
