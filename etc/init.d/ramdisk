@@ -73,15 +73,25 @@ Run ()
     ${test:+echo} "$@"
 }
 
-IsMountRamdisk ()
+IsOverlayfs ()
+{
+    grep overlay /proc/filesystems
+}
+
+IsMounted ()
 {
     mount | egrep -q " $RAMDISK +type +\<tmpfs "
 }
 
-IsMountRamdiskOrDie ()
+RequireFeaturesOrDie ()
 {
     if ! IsMounted ; then
         Warn "$BIN: ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
+        exit 1
+    fi
+
+    if ! IsOverlayfs ; then
+        Warn "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
         exit 1
     fi
 }
@@ -205,11 +215,11 @@ Main ()
                 return 1
             fi
 
-            IsMountRamdiskOrDie
+            RequireFeaturesOrDie
             MountMain mount
             ;;
         restart | force-reload | reload | flush)
-            IsMountRamdiskOrDie
+            RequireFeaturesOrDie
             MountMain flush
             :
             ;;
@@ -220,11 +230,11 @@ Main ()
                 return 1
             fi
 
-            IsMountRamdiskOrDie
+            RequireFeaturesOrDie
             MountMain umount
             ;;
         status)
-            IsMountRamdiskOrDie
+            RequireFeaturesOrDie
 
             if [ -f "$RAMDISK/$RUN" ]; then
                 echo "$BIN: active"
