@@ -17,7 +17,7 @@ routers, other embedded Linux), it's possible to use RAM better by
 using tempfs filesystem like Zram[1].
 
 For virtualized environments, the network traffic can be also reduced
-by not writing directly to remte disk but keeping the data in host A's
+by not writing directly to remote disk but keeping the data in host A's
 memory. ::
 
      HOST		      NAS
@@ -29,30 +29,13 @@ memory. ::
 How does it work?
 -----------------
 
-Bash installation contains ``rbash`` binary which restricts access.
-See
-<http://www.gnu.org/s/bash/manual/html_node/The-Restricted-Shell.html>.
-What is left to do is to provide a small set of configuration files to
-go with the account. The concept is pretty straight forward but it is
-tedious to type all the commands. This project automates the steps to:
-
-1. Create a user account, provided it does not exist. Set login shell to ``rbash``
-
-2. Copy minimal startup files (Bash, SSH).
-
-2. Symlink allowed commands to user's ``bin/`` directory and point PATH there.
-
-3. Set tight permissions for the account directory and its files.
-
-After these steps, the account is hopefully sufficiently locked down.
-User cannot edit configuration files, change PATH, run commands
-starting with slash, or cd anywhere, so the only commands available to
-him are those in ``bin/``.
+The ``/etc/init.d/ramdisk`` controls management of mount points and layers them using
 
 REQUIREMENTS
 ============
 
-1. Environment: Linux only
+1. Environment: Linux only. Reruires overlayfs[3] in kernel (3.18+; 2014)
+   Check ``/proc/filesystems``.
 
 2. Build: /bin/sh
 
@@ -118,6 +101,10 @@ REFERENCES
   <https://wiki.debian.org/ZRam> and
   <https://wiki.archlinux.org/index.php/Improving_performance#Zram_or_zswap> and
   <https://wiki.gentoo.org/wiki/Zram>
+
+- [3]
+  <https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt> and
+  <https://en.wikipedia.org/wiki/OverlayFS>
 
 COPYRIGHT AND LICENSE
 =====================
