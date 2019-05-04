@@ -2,6 +2,7 @@ Requires
 
    Linux
    Linux overlayfs in Kernel (3.18+; 2014)
+   Linux LSB base
    Standard POSIX /bin/sh
    Standard GNU command line programs
    rsync
