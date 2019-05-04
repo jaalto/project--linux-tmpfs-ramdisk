@@ -5,8 +5,7 @@
 DESCRIPTION
 ===========
 
-Warning: as of 2019-05-04 this is only a CONCEPT, NOT YET WORKING,
-**EXPERIMENTAL**, UNTESTED.
+Warning: as of 2019-05-04 this is **EXPERIMENTAL**.
 
 A Linux administrator utility to manage selected directories in tmpfs RAM.
 
