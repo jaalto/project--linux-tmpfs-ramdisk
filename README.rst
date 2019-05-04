@@ -32,7 +32,7 @@ How does it work?
 The ``/etc/init.d/ramdisk`` controls management of mount points,
 layers them using overlayfs[3] and pretends that the new mounts in RAM
 are the actual file system mounts using "bind mounts". The command
-"starts" is reposible for creating all the mounts and moving data to
+"starts" is responsible for creating all the mounts and moving data to
 RAM. Command "stop" unwinds the mounts, transfers changes back to
 the disk and dissolves any remaining mounts back to pristine state.
 
@@ -43,7 +43,7 @@ There are two mount layers: ::
     |    back to original FS: e.g. /tmp         |
     +-------------------------------------------+
     |    overlayfs: /tamp /var/spool...         |
-    |    al mounts under: /mnt/ramdisk          |
+    |    all mounts under: /mnt/ramdisk         |
     +-------------------------------------------+
     |    Original FS (standard directories)     |
     +-------------------------------------------+
@@ -51,7 +51,7 @@ There are two mount layers: ::
 REQUIREMENTS
 ============
 
-1. Environment: Linux only. Reruires overlayfs[3] in kernel (3.18+; 2014)
+1. Environment: Linux only. Requires overlayfs[3] in kernel (3.18+; 2014)
    Check ``/proc/filesystems``.
 
 2. POSIX ``/bin/sh``, GNU command
@@ -94,7 +94,7 @@ Create tempfs mount point, add it to /etc/fstab and mount it: ::
 
     mount /mnt/ramdisk
 
-Configure setting. Be very careful what diretoctories you put in RAM.
+Configure setting. Be very careful what directories you put in RAM.
 On power failure, the non-flushed data in RAM is *lost*. ::
 
     /etc/defaults/ramdisk
