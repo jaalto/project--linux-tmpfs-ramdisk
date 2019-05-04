@@ -56,7 +56,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0504.2248"
+VERSION="2019.0504.2322"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -137,6 +137,36 @@ IsMountOverlay ()
 IsMountRamdiskRoot ()
 {
     mount | egrep -q " $RAMDISK +type +\<tmpfs "
+}
+
+IsDirValid ()
+{
+    local debug
+
+    if [ $# -gt 0 ] && [ ! "$1" ]; then
+        debug="NOK: argument is empty"
+        return 1
+    elif [ ! "$1" ]; then
+        debug="NOK: missing argument"
+        return 1
+    fi
+
+    case "$1" in
+        *\ *)
+            debug="NOK: spaces in directory"
+            return 1
+            ;;
+        /*) debug="OK: absolute path"
+            ;;
+         *) debug="NOK: non-absolute path or something else"
+            return 1
+            ;;
+    esac
+
+    if [ ! -d "$1" ]; then
+        debug="NOK: non-existing directory"
+        return 1
+    fi
 }
 
 Mount ()
@@ -242,6 +272,10 @@ MountMain ()
     for dir in $DIRLIST
     do
         dest=$RAMDISK/${dir#/}
+
+        if ! IsDirValid "$dir"; then
+            Warn "$BIN: WARN invalid directory, ignored: '$dir'"
+        fi
 
         if [ "$cmd" = "mount" ]; then
             Mount "$dir" "$dest"
@@ -408,6 +442,12 @@ Main ()
     esac
 }
 
-Main "$@"
+set -x
+IsDirValid
+IsDirValid ""
+IsDirValid " "
+IsDirValid "this here"
+IsDirValid "this/here"
+#Main "$@"
 
 # End of file
