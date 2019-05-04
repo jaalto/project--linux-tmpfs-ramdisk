@@ -134,6 +134,7 @@ REFERENCES
 
 See also:
 
+- <https://github.com/graysky2/anything-sync-daemon>
 - <https://wiki.archlinux.org/index.php/anything-sync-daemon>
 - <https://salsa.debian.org/janluca-guest/anything-sync-daemon-debian>
 - <https://debian-administration.org/article/661/A_transient_/var/log>
