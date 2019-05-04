@@ -29,13 +29,14 @@ memory. ::
 How does it work?
 -----------------
 
-The ``/etc/init.d/ramdisk`` controls management of mount points and
-layers them using overlayfs[3] and pretends tha thet the new mounts
-point to the actual file system using "bind mounts". The commands
+The ``/etc/init.d/ramdisk`` controls management of mount points,
+layers them using overlayfs[3] and pretends that the new mounts in RAM
+are the actual file system mounts using "bind mounts". The command
 "starts" is reposible for creating all the mounts and moving data to
-RAM. Command "stop" does the opposite: it unwinds the mounts and
-transfers changes back to the disk and dissolves any mounts (the file
-systems is as it used to be). There are two layers ::
+RAM. Command "stop" unwinds the mounts, transfers changes back to
+the disk and dissolves any remaining mounts back to pristine state.
+
+There are two layers ::
 
     +-------------------------------------------+
     |    bind mounts from /mnt/ramdisk/<DIR>    |
