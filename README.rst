@@ -45,7 +45,7 @@ There are two mount layers: ::
     |    bind mounts from /mnt/ramdisk/<DIR>    |
     |    back to original FS: e.g. /tmp         |
     +-------------------------------------------+
-    |    overlayfs: /tamp /var/spool...         |
+    |    overlayfs: /tmp /var/man ...           |
     |    all mounts under: /mnt/ramdisk         |
     +-------------------------------------------+
     |    Original FS (standard directories)     |
