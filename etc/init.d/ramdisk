@@ -37,7 +37,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 . /lib/lsb/init-functions
 
-# Configuration variables
+# Default configuration variables unless overriden in /etc/default/ramtmpfs
 
 RAMDISK=/mnt/ramdisk
 
