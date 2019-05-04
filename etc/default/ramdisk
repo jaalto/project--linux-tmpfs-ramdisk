@@ -2,10 +2,18 @@
 #
 # Note: adjust /etc/cron.d/ramdisk how often RAM is flushed to disk
 
+# Make rsync(1) calls as fast as possible to preserve data
+# writes from RAM to disk. NEVER set this to a positive number.
+# Value zero make rsync(1) run in a normal priority.
+
+NICE=-20
+
 # Location of tmpfs mount point. Must be already mounted in /etc/fstab
+
 RAMDISK=/mnt/ramdisk
 
 # Directories to move to RAM
+
 DIRLIST="\
 /var/cache/man \
 /var/cache/fontconfig \
