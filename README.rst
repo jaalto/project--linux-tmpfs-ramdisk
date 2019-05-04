@@ -99,7 +99,7 @@ On power failure, the non-flushed data in RAM is *lost*. ::
 
     /etc/defaults/ramdisk
 
-Configure how often the RAM is flushed to disk. Default setup is every
+Configure how often the RAM is flushed back to disk. Default setup is every
 2 hours. ::
 
     /etc/cron.d/ramdisk
