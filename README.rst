@@ -60,8 +60,19 @@ REQUIREMENTS
 USAGE
 =====
 
-After install, the utility is used as any other service. The "flush"
-command copies data back from RAM to disk. ::
+For preparations, make sure processes are not holding any files in
+directories. E.g. ``ssh-agent`` stores files in ``/tmp``:
+
+     find /tmp -print0 | xargs --null fuser
+
+Make similar checks on other directories that you plan to put on RAM
+according to ``/etc/default/ramdisk``. If in doubt, drop in single
+user mode on running system first:
+
+    telinit 1
+
+After preparations, the utility is used as any other service. The
+"flush" command copies data back from RAM to disk. ::
 
     /etc/init.d/ramdisk <start|stop|flush>
 
