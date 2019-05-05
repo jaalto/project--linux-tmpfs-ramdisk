@@ -34,10 +34,22 @@
 #
 #   NOTES
 #
+#       See basic help:
+#
+#           /<path>/ramdisk --help
+#
 #       For debugging, enable dry run test mode. To display rsync(1)
 #       transfer messages, enable verbose:
 #
 #           /<path>/ramdisk --verbose [--test] <command>
+#
+#       For testing purposes there is a special option to see what
+#       would be written but no actual data will be transferred to
+#       disk. Only aplicaple with the "sync" command. Do not add
+#       --test option with it as the necessary mount teardowns/setups
+#       would be then bypassed.
+#
+#           /<path>/ramdisk --verbose --test-ram sync
 
 ### BEGIN INIT INFO
 # Provides:          ramdisk
@@ -60,7 +72,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0505.0751"
+VERSION="2019.0505.0821"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -98,6 +110,7 @@ OPTIONS
 
 -h, --help      Display help and exit.
 -t, --test      Run in dry run, test mode. Only displays commands.
+-T, --test-ram  Run in dry run RAM-to-DISK. Only for the 'sync' command.
 -v, --verbose   Turn on verbose messages
 -V, --version   Display version, licence etc. and exit
 
@@ -117,6 +130,7 @@ Configuration: $CONF
 Initialize ()
 {
     # Initialize global variables
+    # NOTE: the lowercase global variables have been set in Main()
 
     VERBOSE="--quiet"
     VERBOSEON=
@@ -137,7 +151,7 @@ Version ()
 
 Warn ()
 {
-    echo "$*" >&2
+    echo "$BIN: $*" >&2
 }
 
 Die ()
@@ -148,13 +162,18 @@ Die ()
 
 Echo ()
 {
-    [ "$VERBOSEON" ] && echo "$*"
+    echo "$BIN: $*"
+}
+
+Echoo ()
+{
+    [ "$VERBOSEON" ] && Echo "$*"
 }
 
 Sed ()
 {
     # Prefix all messaged with "<binary name>: "
-    [ "$VERBOSEON" ] && sed "s,^,$BIN: ,"
+    [ "$VERBOSEON" ] && sed -e "s,^,$BIN: ," -e "s,[[:space:]]\+$,,"
 }
 
 Run ()
@@ -235,12 +254,12 @@ Mount ()
     local permissions=$3
 
     if [ ! -d "$src" ]; then
-        Warn "$BIN: (Mount) ERROR no src $src"
+        Warn "(Mount) ERROR no src $src"
         return 0
     fi
 
     if [ ! "$dest" ]; then
-        Warn "$BIN: (Mount) no dest $dest"
+        Warn "(Mount) no dest $dest"
         return 1
     fi
 
@@ -264,7 +283,7 @@ Mount ()
 
     Run install -D $perm $dest $dest.workdir $dest.overlay | Sed
 
-    Echo "$BIN: [start] rsync $src/ $dest.overlay/"
+    Echo "[start] rsync $src/ $dest.overlay/"
     Run $RSYNC --delete $src/ $dest.overlay/ | Sed
 
     Run mount -t overlay \
@@ -281,7 +300,7 @@ Umount ()
     local type=$3
 
     if [ ! "$dest" ]; then
-        Warn "$BIN: (Umount) dest arguments missing"
+        Warn "(Umount) dest arguments missing"
         return 1
     fi
 
@@ -290,12 +309,12 @@ Umount ()
     fi
 
     if [ ! -d "$src" ]; then
-        Warn "$BIN: ERROR (Umount) no src $src"
+        Warn "ERROR (Umount) no src $src"
         return 0
     fi
 
     if [ ! -d "$dest" ]; then
-        Warn "$BIN: ERROR (Umount) no dest $dest"
+        Warn "ERROR (Umount) no dest $dest"
         return 0
     fi
 
@@ -307,14 +326,18 @@ Umount ()
         # Open up bind mount and write chnages back
         Run umount -fl $src | Sed
 
-        Echo "$bin: [sync] rsync $dest.overlay/ $src"
-        Run $RSYNC $dest.overlay/ $src/ | Sed
+        Echoo "[sync] rsync $dest.overlay/ $src"
+        Run $RSYNC ${testram:+--dry-run} ${testram:+--verbose} $dest.overlay/ $src/ | Sed
+
+        if [ "$testram" ]; then
+            Echo "rsync was in DRY RUN MODE, no data was transferred"
+        fi
 
         Run mount -o bind $dest.overlay $src | Sed
     else
         Run umount -fl $src | Sed
 
-        Echo "$bin: [stop] rsync $dest.overlay/ $src"
+        Echoo "[stop] rsync $dest.overlay/ $src"
         Run $RSYNC --remove-source-files --delete-after $dest.overlay/ $src/ | Sed
 
         Run umount -fl $dest.overlay | Sed
@@ -351,17 +374,17 @@ MountMain ()
         dest=$RAMDISK/${dir#/}   # remove trailing slash(/)
 
         if ! IsDirValid "$dir"; then
-            Warn "$BIN: WARN invalid directory, ignored: '$dir'"
+            Warn "WARN invalid directory, ignored: '$dir'"
         fi
 
         if [ "$cmd" = "mount" ]; then
             Mount "$dir" "$dest" "$permissions"
-            Run touch "$LOCK"
+            Run touch "$LOCK" | Sed
         elif [ "$cmd" = "sync" ]; then
             WriteRamToDisk "$dir" "$dest"
         else
             Umount "$dir" "$dest"
-            Run rm -f "$LOCK"
+            Run rm -f "$LOCK" | Sed
         fi
     done
 }
@@ -379,21 +402,21 @@ StatusOverlays ()
 Status ()
 {
     if IsMountRamdiskRoot ; then
-        echo "$BIN: active tmpfs $RAMDISK"
+        Echo "active tmpfs $RAMDISK"
     else
-        echo "$BIN: deactive tmpfs $RAMDISK"
+        Echo "deactive tmpfs $RAMDISK"
         return 1
     fi
 
     if [ -f "$LOCK" ]; then
-        echo "$BIN: active process status $LOCK"
+        Echo "active process status $LOCK"
     else
-        echo "$BIN: deactive process status. No $LOCK"
+        Echo "deactive process status. No $LOCK"
     fi
 
     local dir
 
-    echo "$BIN: directories $DIRLIST"
+    Echo "directories $DIRLIST"
 
     StatusOverlays | sed "s,^,$BIN: [mount] ,"
 
@@ -419,17 +442,17 @@ Clean ()
 RequireFeaturesOrDie ()
 {
     if ! IsMountRamdiskRoot ; then
-        Die "$BIN: ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
+        Die "ERROR tmpfs $RAMDISK not mounted, check /etc/fstab. Aborted."
     fi
 
     if ! IsOverlayfs ; then
-        Die "$BIN: ERROR overlayfs not supported in current Kernel. Aborted."
+        Die "ERROR overlayfs not supported in current Kernel. Aborted."
     fi
 
     [ -x /usr/bin/rsync ] && return 0
 
     if ! which rsync > /dev/null 2>&1 ; then
-        Die "$BIN: ERROR rsync(1) progam not in PATH. Aborted."
+        Die "ERROR rsync(1) progam not in PATH. Aborted."
     fi
 }
 
@@ -441,6 +464,7 @@ Main ()
 {
     unset verbose
     unset test
+    unset testram
 
     while :
     do
@@ -453,6 +477,10 @@ Main ()
                 shift
                 test=test
                 ;;
+            -T | --test-ram)
+                shift
+                testram=testram
+                ;;
             -v | --verbose)
                 shift
                 verbose=verbose
@@ -461,7 +489,7 @@ Main ()
                 Version
                 return 0
                 ;;
-            -*) Warn"$BIN: WARN Unknown option: $1"
+            -*) Warn "WARN Unknown option: $1"
                 shift
                 ;;
             --)
@@ -481,13 +509,13 @@ Main ()
             log_daemon_msg "Starting $BIN" "$BIN"
 
             if ! IsRamdisk ; then
-                Die "$BIN: ERROR no mount directory $RAMDISK. Aborted."
+                Die "ERROR no mount directory $RAMDISK. Aborted."
             fi
 
             RequireFeaturesOrDie
             MountMain mount
             ;;
-        restart | force-reload | reload | flush | sync*)
+        restart | force-reload | reload | flush | sync* | write)
             RequireFeaturesOrDie
             MountMain sync
             :
