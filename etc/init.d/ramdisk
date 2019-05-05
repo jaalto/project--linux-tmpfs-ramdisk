@@ -60,7 +60,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0505.0739"
+VERSION="2019.0505.0744"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -228,17 +228,17 @@ Mount ()
     local dest=$2
     local permissions=$3
 
-    if [ ! "$2" ]; then
-        Warn "$BIN: (Mount) arguments missing"
-        return 1
-    fi
-
     if [ ! -d "$src" ]; then
         Warn "$BIN: (Mount) ERROR no src $src"
         return 0
     fi
 
-    if mount | grep --quiet $dest.overlay ; then
+    if [ ! "$dest" ]; then
+        Warn "$BIN: (Mount) no dest $dest"
+        return 1
+    fi
+
+    if mount | grep --quiet "$dest.overlay" ; then
         return 0  # Already mounted
     fi
 
@@ -274,8 +274,8 @@ Umount ()
     local dest=$2
     local type=$3
 
-    if [ ! "$2" ]; then
-        Warn "$BIN: (Umount) arguments missing"
+    if [ ! "$dest" ]; then
+        Warn "$BIN: (Umount) dest arguments missing"
         return 1
     fi
 
@@ -284,17 +284,17 @@ Umount ()
     fi
 
     if [ ! -d "$src" ]; then
-        Warn "$BIN: ERROR no src $src"
+        Warn "$BIN: ERROR (Umount) no src $src"
         return 0
     fi
 
     if [ ! -d "$dest" ]; then
-        Warn "$BIN: ERROR no dest $dest"
+        Warn "$BIN: ERROR (Umount) no dest $dest"
         return 0
     fi
 
     if ! mount | grep --quiet $dest.overlay ; then
-        return 0  # No overlay mount
+        return 0  # No overlay mount active
     fi
 
     if [ "$type" = "sync" ]; then
@@ -315,7 +315,7 @@ Umount ()
     fi
 }
 
-RamToDisk ()
+WriteRamToDisk ()
 {
     local src=$1
     local dest=$2
@@ -352,7 +352,7 @@ MountMain ()
             Mount "$dir" "$dest" "$permissions"
             Run touch "$LOCK"
         elif [ "$cmd" = "sync" ]; then
-            RamToDisk "$dir" "$dest"
+            WriteRamToDisk "$dir" "$dest"
         else
             Umount "$dir" "$dest"
             Run rm -f "$LOCK"
