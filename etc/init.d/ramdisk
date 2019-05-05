@@ -60,7 +60,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0505.0744"
+VERSION="2019.0505.0751"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -149,6 +149,12 @@ Die ()
 Echo ()
 {
     [ "$VERBOSEON" ] && echo "$*"
+}
+
+Sed ()
+{
+    # Prefix all messaged with "<binary name>: "
+    [ "$VERBOSEON" ] && sed "s,^,$BIN: ,"
 }
 
 Run ()
@@ -256,16 +262,16 @@ Mount ()
         perm="--mode=$permissions"
     fi
 
-    Run install -D $perm $dest $dest.workdir $dest.overlay
+    Run install -D $perm $dest $dest.workdir $dest.overlay | Sed
 
-    Echo "$bin: [start] rsync $src/ $dest.overlay/"
-    Run $RSYNC --delete $src/ $dest.overlay/
+    Echo "$BIN: [start] rsync $src/ $dest.overlay/"
+    Run $RSYNC --delete $src/ $dest.overlay/ | Sed
 
     Run mount -t overlay \
         -o rw,lowerdir=$src,upperdir=$dest.overlay,workdir=$dest.workdir \
         none $dest.overlay
 
-    Run mount -o bind $dest.overlay $src
+    Run mount -o bind $dest.overlay $src | Sed
 }
 
 Umount ()
@@ -299,19 +305,19 @@ Umount ()
 
     if [ "$type" = "sync" ]; then
         # Open up bind mount and write chnages back
-        Run umount -fl $src
+        Run umount -fl $src | Sed
 
         Echo "$bin: [sync] rsync $dest.overlay/ $src"
-        Run $RSYNC $dest.overlay/ $src/
+        Run $RSYNC $dest.overlay/ $src/ | Sed
 
-        Run mount -o bind $dest.overlay $src
+        Run mount -o bind $dest.overlay $src | Sed
     else
-        Run umount -fl $src
+        Run umount -fl $src | Sed
 
         Echo "$bin: [stop] rsync $dest.overlay/ $src"
-        Run $RSYNC --remove-source-files --delete-after $dest.overlay/ $src/
+        Run $RSYNC --remove-source-files --delete-after $dest.overlay/ $src/ | Sed
 
-        Run umount -fl $dest.overlay
+        Run umount -fl $dest.overlay | Sed
     fi
 }
 
