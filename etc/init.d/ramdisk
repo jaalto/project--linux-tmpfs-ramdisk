@@ -72,7 +72,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0505.0821"
+VERSION="2019.0505.0852"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -108,11 +108,13 @@ Help ()
 
 OPTIONS
 
--h, --help      Display help and exit.
--t, --test      Run in dry run, test mode. Only displays commands.
--T, --test-ram  Run in dry run RAM-to-DISK. Only for the 'sync' command.
--v, --verbose   Turn on verbose messages
--V, --version   Display version, licence etc. and exit
+-h, --help       Display help and exit.
+-c, --conf FILE  Read configuration from FILE.
+                 /etc/default/ramdisk is read before this.
+-t, --test       Run in dry run, test mode. Only displays commands.
+-T, --test-ram   Run in dry run RAM-to-DISK. Only for the 'sync' command.
+-v, --verbose    Turn on verbose messages
+-V, --version    Display version, licence etc. and exit
 
 DESCRIPTION
 
@@ -472,6 +474,21 @@ Main ()
             -h | --help)
                 Help
                 return 0
+                ;;
+            -c | --conf)
+                shift
+
+                if [ ! "$1" ] || [ ! -f "$1" ]; then
+                    Die "no conf file: '$1'"
+                fi
+
+                case "$1" in
+                    */*) ;;             # All good,
+                    *)  set -- ./$1 ;;  # look from current dir, not PATH
+                esac
+
+                . "$1"
+                shift
                 ;;
             -t | --test)
                 shift
