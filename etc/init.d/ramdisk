@@ -49,6 +49,10 @@
 # Description:       Manage directories moved to tmpfs
 ### END INIT INFO
 
+# -----------------------------------------------------------------------
+# Initial setup
+# -----------------------------------------------------------------------
+
 PATH=/bin:/usr/bin:/sbin:/usr/sbin
 
 . /lib/lsb/init-functions
@@ -56,7 +60,7 @@ PATH=/bin:/usr/bin:/sbin:/usr/sbin
 # Local variables
 
 AUTHOR="Jari Aalto <jari.aalto@cante.net>"
-VERSION="2019.0504.2322"
+VERSION="2019.0505.0739"
 LICENSE="GPL-2+"
 HOMEPAGE=https://github.com/jaalto/project--linux-tmpfs-ramdisk
 
@@ -81,6 +85,34 @@ DIRLIST="\
 test -r $CONF && . $CONF
 
 LOCK=$RAMDISK/ramdisk.lock
+
+# -----------------------------------------------------------------------
+# Functions
+# -----------------------------------------------------------------------
+
+Help ()
+{
+    echo "$USAGE
+
+OPTIONS
+
+-h, --help      Display help and exit.
+-t, --test      Run in dry run, test mode. Only displays commands.
+-v, --verbose   Turn on verbose messages
+-V, --version   Display version, licence etc. and exit
+
+DESCRIPTION
+
+Manage select diectories in RAM. Provide command 'start' to
+copy-to-RAM, command 'stop' to restore the system mounts as they were
+while wriing modified files back to disk and 'sync' to snapshot
+RAM-copy-to-DISK to preserve data.
+
+Configuration: $CONF
+"
+
+    Version
+}
 
 Initialize ()
 {
@@ -122,6 +154,11 @@ Echo ()
 Run ()
 {
     ${test:+echo} "$@"
+}
+
+IsRamdisk ()
+{
+    [ "$RAMDISK" ] && [ -d "$RAMDISK" ]
 }
 
 IsOverlayfs ()
@@ -169,10 +206,27 @@ IsDirValid ()
     fi
 }
 
+DirTopLevel ()
+{
+    echo "$*" |
+    awk -F/ '
+        {
+            hash[$2]
+        }
+        END {
+            for (name in hash)
+            {
+                print name;
+            }
+        }
+    '
+}
+
 Mount ()
 {
     local src=$1
     local dest=$2
+    local permissions=$3
 
     if [ ! "$2" ]; then
         Warn "$BIN: (Mount) arguments missing"
@@ -180,23 +234,29 @@ Mount ()
     fi
 
     if [ ! -d "$src" ]; then
-        Warn "$BIN: ERROR no src $src"
+        Warn "$BIN: (Mount) ERROR no src $src"
         return 0
     fi
 
     if mount | grep --quiet $dest.overlay ; then
-        return 0  # Already
+        return 0  # Already mounted
     fi
 
-    Run mkdir -p $dest $dest.workdir $dest.overlay
+    local perm
 
-    # Special permissions
+    # Default permissions for some directories
 
     case "$src" in
         /tmp)
-            chmod a=rwx,o+t $dest
+            perm="a=rwx,o+t"
             ;;
     esac
+
+    if [ "$permissions" ]; then
+        perm="--mode=$permissions"
+    fi
+
+    Run install -D $perm $dest $dest.workdir $dest.overlay
 
     Echo "$bin: [start] rsync $src/ $dest.overlay/"
     Run $RSYNC --delete $src/ $dest.overlay/
@@ -267,18 +327,29 @@ MountMain ()
 {
     local cmd=$1
     local dir
+    local permissions
     local dest
 
     for dir in $DIRLIST
     do
-        dest=$RAMDISK/${dir#/}
+        # <path>:<chmod-permissions>
+        permissions=""
+
+        case "$dir" in
+            *:*)
+                permissions=${dir#*:}
+                dir=${dir%%:*}
+                ;;
+        esac
+
+        dest=$RAMDISK/${dir#/}   # remove trailing slash(/)
 
         if ! IsDirValid "$dir"; then
             Warn "$BIN: WARN invalid directory, ignored: '$dir'"
         fi
 
         if [ "$cmd" = "mount" ]; then
-            Mount "$dir" "$dest"
+            Mount "$dir" "$dest" "$permissions"
             Run touch "$LOCK"
         elif [ "$cmd" = "sync" ]; then
             RamToDisk "$dir" "$dest"
@@ -323,6 +394,22 @@ Status ()
     return 0
 }
 
+Clean ()
+{
+    local dir
+
+    IsRamdisk || return 1
+
+    for dir in $(DirTopLevel "$DIRLIST")
+    do
+        dir=$RAMDISK/$dir
+
+        if [ -d "$dir" ]; then
+            Run rm -rf "$dir"
+        fi
+    done
+}
+
 RequireFeaturesOrDie ()
 {
     if ! IsMountRamdiskRoot ; then
@@ -340,29 +427,9 @@ RequireFeaturesOrDie ()
     fi
 }
 
-Help ()
-{
-    echo "$USAGE
-
-OPTIONS
-
--h, --help      Display help and exit.
--t, --test      Run in dry run, test mode. Only displays commands.
--v, --verbose   Turn on verbose messages
--V, --version   Display version, licence etc. and exit
-
-DESCRIPTION
-
-Manage select diectories in RAM. Provide command 'start' to
-copy-to-RAM, command 'stop' to restore the system mounts as they were
-while wriing modified files back to disk and 'sync' to snapshot
-RAM-copy-to-DISK to preserve data.
-
-Configuration: $CONF
-"
-
-    Version
-}
+# -----------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------
 
 Main ()
 {
@@ -407,9 +474,8 @@ Main ()
         start)
             log_daemon_msg "Starting $BIN" "$BIN"
 
-            if [ ! -d $RAMDISK ] ; then
-                Warn "$BIN: ERROR no mount directory $RAMDISK for tmpfs. Aborted."
-                return 1
+            if ! IsRamdisk ; then
+                Die "$BIN: ERROR no mount directory $RAMDISK. Aborted."
             fi
 
             RequireFeaturesOrDie
@@ -442,12 +508,6 @@ Main ()
     esac
 }
 
-set -x
-IsDirValid
-IsDirValid ""
-IsDirValid " "
-IsDirValid "this here"
-IsDirValid "this/here"
-#Main "$@"
+Main "$@"
 
 # End of file
