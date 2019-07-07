@@ -25,6 +25,13 @@ memory. ::
      | Virtual Machine + ---- + Disks located on network drive |
      +-----------------+      +--------------------------------+
 
+TARGET AUDIENCE
+---------------
+
+Use on low load non-critical systems which are on 24/7 to save HDD/SDD wear.
+Probably not suitable on high load servers where possibly losing data is not
+an option in case of problems synchronizing RAM back to disk.
+
 How does it work?
 -----------------
 
@@ -100,15 +107,15 @@ Create tmpfs mount point, add it to /etc/fstab and mount it: ::
 
     mkdir /mnt/ramdisk   # You can use any dir. Remember to edit /etc/defaults/ramdisk
 
-    # (1) use this
+    # (1) use this (saves RAM by utilizing compression)
     /dev/zram0 /mnt/ramdisk  tmpfs  size=200M,defaults,noexec,nosuid,nodev,mode=0755 0 0
 
-    # (2) or use plain tmpfs
+    # (2) or use plain tmpfs (RAM is used as files are written)
     tmpfs /mnt/ramdisk  tmpfs  size=200M,defaults,noexec,nosuid,nodev,mode=0755 0 0
 
     mount /mnt/ramdisk
 
-Configure setting. Be very careful what directories you put in RAM.
+Configure settings. Be very careful what directories you put in RAM.
 On power failure, the non-flushed data in RAM is *lost*. ::
 
     /etc/defaults/ramdisk
