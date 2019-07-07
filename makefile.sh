@@ -25,7 +25,7 @@ Synopsis: [DESTDIR=<install root>] $0 [command]
 Commands:
 install    Install by copying (default if no commands given)
 symlink    Install symlinks from currect directory
-clean      Remove installed run files. Lave configuration /etc/default
+clean      Remove installed run files. Leave configuration in /etc/defaults/ramdisk
 realclean  Remove everything
 status     Show install status."
 
