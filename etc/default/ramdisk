@@ -1,4 +1,4 @@
-# /etc/defalts/ramdisk
+# /etc/default/ramdisk
 #
 # Note: adjust /etc/cron.d/ramdisk RAM-copy-to-DISK sync period.
 
