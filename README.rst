@@ -9,14 +9,14 @@ Warning: **EXPERIMENTAL** and UNTESTED
 
 A Linux administrator utility to manage selected directories in tmpfs RAM.
 
-Keep list of directories like ``/tmp`` and ``/var/cache`` in RAM in a
-single mount point. The idea is speed and less HDD/SDD wear of
-frequently accessed or written files. In low RAM systems (NAS,
-routers, other embedded Linux), it's possible to use RAM better by
-using tempfs filesystem like Zram[1].
+Keeps list of directories like ``/tmp`` and ``/var/cache`` in RAM
+under a single mount point. The idea of keeping freuently frequently
+accessed or written files, like logs, in memory is for speed and less
+HDD/SDD wear. In low RAM systems (NAS, routers, other embedded Linux),
+it's possible to use RAM better by replacing basic tempfs with Zram[1].
 
-For virtualized environments, the network traffic can be also reduced
-by not writing directly to remote disk but keeping the data in host A's
+For virtualized environments, the network traffic is also reduced by
+not writing directly to remote disk but keeping the data in host's
 memory. ::
 
      HOST                     NAS
@@ -28,9 +28,10 @@ memory. ::
 TARGET AUDIENCE
 ---------------
 
-Use on low load non-critical systems which are on 24/7 to save HDD/SDD wear.
-Probably not suitable on high load servers where possibly losing data is not
-an option in case of problems synchronizing RAM back to disk.
+For use in low load, non-critical systems, which are on 24/7 to save
+HDD/SDD wear. Probably not suitable on high load servers where losing
+data is not an option in case of problems in synchronizing RAM back to
+disk.
 
 How does it work?
 -----------------
@@ -69,26 +70,26 @@ REQUIREMENTS
 USAGE
 =====
 
-For preparations, make sure processes are not holding any files in
+Before "start", make sure processes are not holding any files in
 directories. E.g. ``ssh-agent`` stores files in ``/tmp``: ::
 
      find /tmp -print0 | xargs --null fuser
 
 Make similar checks on other directories that you plan to put on RAM
-according to ``/etc/default/ramdisk``. If in doubt, drop in single
-user mode on running system first: ::
+according to ``/etc/default/ramdisk``. If in doubt, drop in a single
+user mode: ::
 
     telinit 1
 
-After preparations, the utility is used as any other service. The
-"sync" command copies data back from RAM to disk. ::
+After preparations, the utility is used like any other service. The
+"sync" command copies data back from RAM to disk. Synopsis: ::
 
     /etc/init.d/ramdisk <start|stop|sync>
 
 INSTALL
 =======
 
-Login as root and run install: ::
+Log in as root and run install: ::
 
     ./makefile.sh help
     ./makefile.sh install
@@ -107,11 +108,13 @@ Create tmpfs mount point, add it to /etc/fstab and mount it: ::
 
     mkdir /mnt/ramdisk   # You can use any dir. Remember to edit /etc/defaults/ramdisk
 
-    # (1) use this (saves RAM by utilizing compression)
-    /dev/zram0 /mnt/ramdisk  tmpfs  size=200M,defaults,noexec,nosuid,nodev,mode=0755 0 0
+    Edit /etc/fstab and select (1) or (2):
 
-    # (2) or use plain tmpfs (RAM is used as files are written)
-    tmpfs /mnt/ramdisk  tmpfs  size=200M,defaults,noexec,nosuid,nodev,mode=0755 0 0
+	# (1) use this (saves RAM by utilizing compression)
+	/dev/zram0 /mnt/ramdisk  tmpfs  size=200M,defaults,noexec,nosuid,nodev,mode=0755 0 0
+
+	# (2) or use plain tmpfs (RAM is used as files are written)
+	tmpfs /mnt/ramdisk  tmpfs  size=200M,defaults,noexec,nosuid,nodev,mode=0755 0 0
 
     mount /mnt/ramdisk
 
